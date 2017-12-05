@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="pure-min.css">
+  <script src="vue.min.js"></script>
+  <title>JuroXJuro</title>
+</head>
+<body>
+  <div id="operation-view">
+    <p style="font-size: 5em">{{ formula }}</p>
+  </div>
+  <div id="result-view">
+    <table class="pure-table pure-table-bordered">
+      <thead>
+        <tr>
+          <th>日時</th>
+          <th>式</th>
+          <th>正誤</th>
+          <th>解答時間（秒）</th>
+          <th>ポイント</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="result in results">
+          <td>{{ formatDatetime(result.datetime) }}</td>
+          <td>{{ result.firstNumber }} × {{ result.secondNumber }} = {{ result.answer }}</td>
+          <td>
+            <span v-if="result.correct" style="color: blue; font-weight: 700; font-size: 2em">◯</span>
+            <span v-else style="color: red; font-weight: 700; font-size: 2em">×</span>
+          </td>
+          <td>{{ formatAnswerTime(result.answerTimeMillis) }}</td>
+          <td>{{ result.point }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <script>
+    function subscribe(url, callback) {
+      var es = new EventSource(url);
+      es.addEventListener('error', function(e) {
+        es.close();
+        setTimeout(function() { subscribe(url, callback) }, 60000); // 60秒後に再接続
+      });
+      es.addEventListener('message', callback);
+    }
+
+    var operationView = new Vue({
+      el: '#operation-view',
+      data: {
+        operation: {}
+      },
+      computed: {
+        formula: function(){
+          var f = '';
+          if(this.operation.firstNumber) {
+            f = this.operation.firstNumber + ' × ';
+          }
+          if(this.operation.secondNumber) {
+            f = f + this.operation.secondNumber + ' = ';
+          }
+          if(this.operation.answer) {
+            f = f + this.operation.answer;
+          }
+          return f;
+        }
+      }
+    });
+
+    subscribe('/api/operation/subscribe', function(e){
+      operationView.operation = JSON.parse(e.data);
+    });
+
+    var resultView = new Vue({
+      el: '#result-view',
+      data: {
+        results: []
+      },
+      methods: {
+        formatDatetime: function(datetime) {
+          return datetime[0] + '/' + datetime[1] + '/' + datetime[2] + ' '
+                 + datetime[3] + ':' + datetime[4] + ':' + datetime[5];
+        },
+        formatAnswerTime: function(answerTimeMillis) {
+          return Math.floor(answerTimeMillis/1000) + '.' + answerTimeMillis%1000;
+        }
+      }
+    });
+
+    subscribe('/api/result/subscribe', function(e){
+      resultView.results.push(JSON.parse(e.data));
+      if(resultView.results.length > 10) {
+        resultView.results.shift();
+      }
+    });
+  </script>
+</body>
+</html>
