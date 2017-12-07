@@ -90,9 +90,9 @@
     });
 
     subscribe('/api/result/subscribe', function(e){
-      resultView.results.push(JSON.parse(e.data));
+      resultView.results.unshift(JSON.parse(e.data));
       if(resultView.results.length > 10) {
-        resultView.results.shift();
+        resultView.results.pop();
       }
     });
   </script>
