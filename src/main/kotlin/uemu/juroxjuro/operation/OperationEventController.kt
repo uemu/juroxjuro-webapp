@@ -27,8 +27,8 @@ class OperationEventController(private val queue: OperationEventQueue) {
   @GetMapping("/arduino-api/operation/publish")
   @ResponseStatus(HttpStatus.CREATED)
   fun publishForArduino(@RequestParam("csv") csv: String) {
-    val params = csv.split(",").map { p -> if (p == "") "0" else p }
-    publish(params[0].toInt(), params[1].toInt(), params[2].toInt(), params[3].toInt())
+    val params = csv.split(",").map { p -> if (p == "") 0 else p.toInt() }
+    publish(params[0], params[1], params[2], params[3])
   }
 
 }
