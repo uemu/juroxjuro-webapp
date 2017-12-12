@@ -7,5 +7,5 @@ CREATE TABLE result_event (
     answer_time_millis  INTEGER,
     correct             BOOLEAN,
     point               INTEGER,
-    CONSTRAINT result_event PRIMARY KEY(id)
+    CONSTRAINT result_event_pk PRIMARY KEY(id)
 );
